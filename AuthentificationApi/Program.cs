@@ -33,7 +33,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient", policy =>
     {
-        policy.WithOrigins("http://localhost:5095") // URL de ton client Blazor
+        // URL du client Blazor : 5000 sous docker (Cors:ClientOrigin), 5095 en local par défaut
+        policy.WithOrigins(builder.Configuration["Cors:ClientOrigin"] ?? "http://localhost:5095")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });

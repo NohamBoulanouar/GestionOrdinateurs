@@ -20,6 +20,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- la base SQLite est copiée au build/publish pour être présente dans l'image docker -->
+    <Content Include="parcinfo.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GestionOrdinateurs.Shared\GestionOrdinateurs.Shared.csproj" />
   </ItemGroup>
 
