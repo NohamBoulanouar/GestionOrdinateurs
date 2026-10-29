@@ -25,7 +25,14 @@ builder.Services.AddHttpClient(UserApiService.NomClient, client =>
     client.BaseAddress = new Uri(builder.Configuration["GestionOrdinateursApi:BaseUrl"] ?? "");
 });
 
+// HttpClientFactory : client nommé vers Keycloak (http://keycloak:8080/ sous docker)
+builder.Services.AddHttpClient(KeycloakService.NomClient, client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Keycloak:Url"] ?? "");
+});
+
 builder.Services.AddScoped<IUserApiService, UserApiService>();
+builder.Services.AddScoped<IKeycloakService, KeycloakService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 
 // CORS : seul le client Blazor peut appeler cette API depuis le navigateur
