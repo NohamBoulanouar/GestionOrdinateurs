@@ -6,6 +6,7 @@ using GestionOrdinateurs.API.Services;
 using GestionOrdinateurs.Shared;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 
@@ -68,11 +69,63 @@ builder.Services.AddSwaggerGen(c =>
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "";
 var key = Encoding.ASCII.GetBytes(jwtKey);
 
+// Keycloak (TP6) : l'issuer est l'URL publique (localhost:8180), l'authority l'URL vue par l'API
+// (sous docker http://keycloak:8080, pour télécharger les clés publiques de signature)
+const string KeycloakScheme = "Keycloak";
+const string SelectionScheme = "JwtOuKeycloak";
+string keycloakIssuer = builder.Configuration["Keycloak:Issuer"] ?? "";
+string keycloakAuthority = builder.Configuration["Keycloak:Authority"] ?? keycloakIssuer;
+string keycloakAudience = builder.Configuration["Keycloak:Audience"] ?? "";
+
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options =>
+    // schéma "aiguilleur" : choisit Keycloak ou le JWT local (TP5) selon l'issuer du token reçu
+    options.DefaultScheme = SelectionScheme;
+    options.DefaultChallengeScheme = SelectionScheme;
+})
+.AddPolicyScheme(SelectionScheme, "JWT local ou Keycloak", options =>
+{
+    options.ForwardDefaultSelector = context =>
+    {
+        string authorization = context.Request.Headers.Authorization.ToString();
+        if (authorization.StartsWith("Bearer "))
+        {
+            string token = authorization["Bearer ".Length..].Trim();
+            var handler = new JsonWebTokenHandler();
+            if (handler.CanReadToken(token) && handler.ReadJsonWebToken(token).Issuer == keycloakIssuer)
+                return KeycloakScheme;
+        }
+        return JwtBearerDefaults.AuthenticationScheme;
+    };
+})
+.AddJwtBearer(KeycloakScheme, options =>
+{
+    options.Authority = keycloakAuthority;
+    options.Audience = keycloakAudience;
+    options.RequireHttpsMetadata = false; // Keycloak tourne en http dans ce TP
+    options.MapInboundClaims = false;     // on garde les noms des claims Keycloak tels quels
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidIssuer = keycloakIssuer,
+        ValidAudience = keycloakAudience,
+        NameClaimType = "preferred_username", // login de l'utilisateur dans Keycloak
+        RoleClaimType = "role"                // rôles ajoutés par le mapper "role" du client Keycloak
+    };
+    options.Events = new JwtBearerEvents
+    {
+        OnTokenValidated = context =>
+        {
+            Console.WriteLine($"Token Keycloak valide --- {context.Principal?.Identity?.Name ?? "Anonymous"}");
+            return Task.CompletedTask;
+        },
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine($"Token Keycloak invalide : {context.Exception.Message}");
+            return Task.CompletedTask;
+        }
+    };
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
