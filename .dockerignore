@@ -1,0 +1,8 @@
+# bin/obj générés sous Windows : ils ne doivent pas écraser ceux créés dans l'image
+**/bin/
+**/obj/
+.git
+.github
+.vs
+.vscode
+.env
