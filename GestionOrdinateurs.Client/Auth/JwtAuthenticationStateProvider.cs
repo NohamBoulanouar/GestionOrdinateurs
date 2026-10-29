@@ -57,7 +57,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
         return jwt.ValidTo < DateTime.UtcNow;
     }
 
-    // dans le token les claims ont des noms courts ("role", "unique_name"...) :
+    // dans le token les claims ont des noms courts ("role", "unique_name", "preferred_username" pour Keycloak...) :
     // on les convertit en ClaimTypes pour que [Authorize(Roles = ...)] et Identity.Name fonctionnent
     private static IEnumerable<Claim> ParseClaimsFromJwt(string token)
     {
@@ -70,6 +70,7 @@ public class JwtAuthenticationStateProvider : AuthenticationStateProvider
             {
                 "role" => ClaimTypes.Role,
                 "unique_name" => ClaimTypes.Name,
+                "preferred_username" => ClaimTypes.Name, // token Keycloak
                 "nameid" => ClaimTypes.NameIdentifier,
                 _ => claim.Type
             };

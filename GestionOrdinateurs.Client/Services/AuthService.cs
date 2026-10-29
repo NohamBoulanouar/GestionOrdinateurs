@@ -21,24 +21,28 @@ public class AuthService
         _authProvider = authProvider;
     }
 
-    // demande un token à AuthentificationApi et le sauvegarde en session
+    // demande un token Keycloak à AuthentificationApi et le sauvegarde en session
     // retourne null si tout s'est bien passé, sinon le message d'erreur à afficher
-    public async Task<string?> ConnecterAsync(string login)
+    public async Task<string?> ConnecterAsync(string login, string motDePasse)
     {
         HttpClient client = _httpClientFactory.CreateClient(ClientsHttp.Authentification);
 
         HttpResponseMessage reponse;
         try
         {
-            reponse = await client.PostAsJsonAsync("Authentication/login", new LoginRequest { Login = login });
+            reponse = await client.PostAsJsonAsync("Authentication/login-keycloak",
+                new LoginRequest { Login = login, MotDePasse = motDePasse });
         }
         catch (HttpRequestException)
         {
             return "Impossible de joindre le service d'authentification.";
         }
 
-        if (reponse.StatusCode == HttpStatusCode.NotFound)
-            return $"L'utilisateur '{login}' n'existe pas.";
+        if (reponse.StatusCode == HttpStatusCode.Unauthorized)
+            return "Login ou mot de passe incorrect.";
+
+        if (reponse.StatusCode == HttpStatusCode.ServiceUnavailable)
+            return "Keycloak est injoignable.";
 
         if (!reponse.IsSuccessStatusCode)
             return $"Erreur lors de la connexion ({(int)reponse.StatusCode}).";

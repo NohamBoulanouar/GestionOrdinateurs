@@ -11,6 +11,9 @@
     <label for="login" class="form-label">Utilisateur</label>
     <InputText id="login" @bind-Value="login" class="form-control" placeholder="ex : user1" />
 
+    <label for="motDePasse" class="form-label mt-2">Mot de passe</label>
+    <InputText id="motDePasse" type="password" @bind-Value="motDePasse" class="form-control" />
+
     <button class="btn btn-primary mt-2" @onclick="ConnecterAsync" disabled="@enCours">
         Connecter
     </button>
@@ -23,21 +26,22 @@
 
 @code {
     private string login = "";
+    private string motDePasse = "";
     private string? messageErreur;
     private bool enCours;
 
-    // génère le token via AuthentificationApi, l'enregistre en session puis retourne à l'accueil
+    // obtient un token Keycloak via AuthentificationApi, l'enregistre en session puis retourne à l'accueil
     private async Task ConnecterAsync()
     {
         messageErreur = null;
-        if (string.IsNullOrWhiteSpace(login))
+        if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(motDePasse))
         {
-            messageErreur = "Veuillez saisir un utilisateur.";
+            messageErreur = "Veuillez saisir un utilisateur et un mot de passe.";
             return;
         }
 
         enCours = true;
-        messageErreur = await AuthService.ConnecterAsync(login.Trim());
+        messageErreur = await AuthService.ConnecterAsync(login.Trim(), motDePasse);
         enCours = false;
 
         if (messageErreur == null)
