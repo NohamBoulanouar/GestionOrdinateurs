@@ -1,0 +1,66 @@
+@page "/ordinateurs"
+@attribute [Authorize(Roles = "Admin, Gestionnaire")]
+
+@inject ParcService ParcService
+
+<PageTitle>Ordinateurs</PageTitle>
+
+<h1>Liste des ordinateurs</h1>
+
+@if (messageErreur != null)
+{
+    <div class="alert alert-danger">@messageErreur</div>
+}
+else if (ordinateurs == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (ordinateurs.Count == 0)
+{
+    <p>Aucun ordinateur.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prix</th>
+                <th>Devise</th>
+                <th>Vendu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Ordinateur ordinateur in ordinateurs)
+            {
+                <tr>
+                    <td>@ordinateur.Nom</td>
+                    <td>@ordinateur.Prix.ToString("N2")</td>
+                    <td>@Devise</td>
+                    <td>@(ordinateur.Vendu ? "Oui" : "Non")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    // les prix sont enregistrés en euros dans la base
+    private const string Devise = "EUR";
+
+    private List<Ordinateur>? ordinateurs;
+    private string? messageErreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            ordinateurs = await ParcService.GetOrdinateursAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            // 401 si le token a expiré, ou Gateway / API arrêtée
+            messageErreur = $"Impossible de charger les ordinateurs : {ex.Message}";
+        }
+    }
+}

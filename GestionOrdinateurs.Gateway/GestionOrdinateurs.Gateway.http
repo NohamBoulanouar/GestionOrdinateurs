@@ -1,0 +1,8 @@
+@GestionOrdinateurs.Gateway_HostAddress = http://localhost:5010
+
+# passe par la Gateway jusqu'à GestionOrdinateurs.API (remplacer {token} par un token JWT)
+GET {{GestionOrdinateurs.Gateway_HostAddress}}/api/Ordinateurs
+Authorization: Bearer {token}
+Accept: application/json
+
+###

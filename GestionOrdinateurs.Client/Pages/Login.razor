@@ -1,0 +1,46 @@
+@page "/login"
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<PageTitle>Connexion</PageTitle>
+
+<h1>Connexion</h1>
+
+<div class="col-md-4">
+    <label for="login" class="form-label">Utilisateur</label>
+    <InputText id="login" @bind-Value="login" class="form-control" placeholder="ex : user1" />
+
+    <button class="btn btn-primary mt-2" @onclick="ConnecterAsync" disabled="@enCours">
+        Connecter
+    </button>
+
+    @if (!string.IsNullOrEmpty(messageErreur))
+    {
+        <div class="alert alert-danger mt-3">@messageErreur</div>
+    }
+</div>
+
+@code {
+    private string login = "";
+    private string? messageErreur;
+    private bool enCours;
+
+    // génère le token via AuthentificationApi, l'enregistre en session puis retourne à l'accueil
+    private async Task ConnecterAsync()
+    {
+        messageErreur = null;
+        if (string.IsNullOrWhiteSpace(login))
+        {
+            messageErreur = "Veuillez saisir un utilisateur.";
+            return;
+        }
+
+        enCours = true;
+        messageErreur = await AuthService.ConnecterAsync(login.Trim());
+        enCours = false;
+
+        if (messageErreur == null)
+            Navigation.NavigateTo("");
+    }
+}

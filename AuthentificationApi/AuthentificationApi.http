@@ -1,0 +1,11 @@
+@AuthentificationApi_HostAddress = http://localhost:5223
+
+# génère un token JWT pour user1 (Admin)
+POST {{AuthentificationApi_HostAddress}}/api/Authentication/login
+Content-Type: application/json
+
+{
+  "login": "user1"
+}
+
+###

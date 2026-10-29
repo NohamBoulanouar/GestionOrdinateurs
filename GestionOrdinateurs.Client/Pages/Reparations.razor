@@ -1,0 +1,63 @@
+@page "/reparations"
+@attribute [Authorize(Roles = "Admin, Gestionnaire")]
+
+@inject ParcService ParcService
+
+<PageTitle>Réparations</PageTitle>
+
+<h1>Historique des réparations</h1>
+
+@if (messageErreur != null)
+{
+    <div class="alert alert-danger">@messageErreur</div>
+}
+else if (historique == null)
+{
+    <p><em>Chargement...</em></p>
+}
+else if (historique.Count == 0)
+{
+    <p>Aucune réparation.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ordinateur</th>
+                <th>Technicien</th>
+                <th>Type de réparation</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (HistoriqueReparationRecord ligne in historique)
+            {
+                <tr>
+                    <td>@ligne.NomOrdinateur</td>
+                    <td>@ligne.Technicien</td>
+                    <td>@ligne.TypeReparation</td>
+                    <td>@ligne.DateIntervention.ToString("dd/MM/yyyy HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<HistoriqueReparationRecord>? historique;
+    private string? messageErreur;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            historique = await ParcService.GetHistoriqueReparationsAsync();
+        }
+        catch (HttpRequestException ex)
+        {
+            // 401 si le token a expiré, ou Gateway / API arrêtée
+            messageErreur = $"Impossible de charger l'historique : {ex.Message}";
+        }
+    }
+}

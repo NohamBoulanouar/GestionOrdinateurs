@@ -1,0 +1,9 @@
+@* redirige vers la page de connexion quand une page protégée est demandée sans être connecté *@
+@inject NavigationManager Navigation
+
+@code {
+    protected override void OnInitialized()
+    {
+        Navigation.NavigateTo("login");
+    }
+}

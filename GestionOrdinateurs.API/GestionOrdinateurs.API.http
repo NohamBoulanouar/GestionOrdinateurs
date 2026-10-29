@@ -1,0 +1,12 @@
+@GestionOrdinateurs.API_HostAddress = http://localhost:5163
+
+# liste des utilisateurs (non protégé : utilisé par AuthentificationApi)
+GET {{GestionOrdinateurs.API_HostAddress}}/api/Users
+Accept: application/json
+
+###
+
+GET {{GestionOrdinateurs.API_HostAddress}}/api/Users/userbylogin/user1
+Accept: application/json
+
+###
