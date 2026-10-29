@@ -1,0 +1,92 @@
+{
+  "realm": "gestionordinateurs",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 900,
+  "roles": {
+    "realm": [
+      { "name": "Admin", "description": "Administrateur du parc informatique" },
+      { "name": "Gestionnaire", "description": "Gestionnaire du parc informatique" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "gestionordinateurs-auth",
+      "name": "AuthentificationApi",
+      "description": "Client utilisé par AuthentificationApi pour obtenir un token avec login / mot de passe",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "gestionordinateurs-secret-tp6",
+      "standardFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": false,
+      "protocolMappers": [
+        {
+          "name": "role",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "role",
+            "multivalued": "true",
+            "jsonType.label": "String",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "userinfo.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        },
+        {
+          "name": "audience-gestionordinateurs-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.custom.audience": "gestionordinateurs-api",
+            "access.token.claim": "true",
+            "id.token.claim": "false",
+            "introspection.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "scopeMappings": [
+    { "client": "gestionordinateurs-auth", "roles": ["Admin", "Gestionnaire"] }
+  ],
+  "users": [
+    {
+      "username": "user1",
+      "enabled": true,
+      "email": "user1@gestionordinateurs.local",
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Un",
+      "credentials": [ { "type": "password", "value": "1234", "temporary": false } ],
+      "realmRoles": ["Admin"]
+    },
+    {
+      "username": "user2",
+      "enabled": true,
+      "email": "user2@gestionordinateurs.local",
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Deux",
+      "credentials": [ { "type": "password", "value": "1234", "temporary": false } ],
+      "realmRoles": ["Gestionnaire"]
+    },
+    {
+      "username": "user3",
+      "enabled": true,
+      "email": "user3@gestionordinateurs.local",
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Trois",
+      "credentials": [ { "type": "password", "value": "1234", "temporary": false } ],
+      "realmRoles": ["Gestionnaire"]
+    }
+  ]
+}

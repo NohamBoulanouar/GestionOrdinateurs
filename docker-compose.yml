@@ -18,19 +18,22 @@ services:
     image: quay.io/keycloak/keycloak:26.8.1
     container_name: keycloak
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: 8180
+      # compte de la console d'administration (http://localhost:8180)
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # URL publique : c'est l'issuer ("iss") de tous les tokens, même demandés via keycloak:8080
+      KC_HOSTNAME: http://localhost:8180
+      # les conteneurs (API, AuthentificationApi) appellent Keycloak par http://keycloak:8080
+      KC_HOSTNAME_BACKCHANNEL_DYNAMIC: "true"
       KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-      KC_HOSTNAME_STRICT_BACKCHANNEL: "false"
-      KC_HOSTNAME_STRICT_HTTPS: "false"
-    command: start-dev
+    # --import-realm : crée le realm gestionordinateurs (rôles, client, utilisateurs) au premier démarrage
+    command: start-dev --import-realm
     ports:
       - "8180:8080"
     volumes:
       - keycloak_data:/opt/keycloak/data
+      - ./keycloak:/opt/keycloak/data/import
     networks:
       - appnet
 
@@ -49,8 +52,11 @@ services:
       GestionOrdinateursApi__BaseUrl: http://gestionordinateurs-api:5163/api/
       # origine du front (navigateur) autorisee par CORS
       Cors__ClientOrigin: http://localhost:5000
+      # Keycloak vu depuis le reseau docker
+      Keycloak__Url: http://keycloak:8080/
     depends_on:
       - gestionordinateurs-api
+      - keycloak
     networks:
       - appnet
 
@@ -65,6 +71,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:5163
+      # clés publiques Keycloak récupérées via le reseau docker (l'issuer reste localhost:8180)
+      Keycloak__Authority: http://keycloak:8080/realms/gestionordinateurs
     depends_on:
       - postgres
       - keycloak
